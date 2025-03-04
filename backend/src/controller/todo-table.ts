@@ -1,47 +1,63 @@
-import { Table, TodoItem, TodoTable } from "../../types";
-import { db } from "../connector/db";
+import { Request, Response, Router } from "express";
+import * as todoTableModel from "../model/todo-table";
+import { TodoTable } from "../../types";
+import { makeJsonRPCResponse } from "../mappers/json-rpc";
+import {
+  JsonRpcRequest,
+  JsonRpcResponse,
+  JsonRpcResponseError,
+  TodoTableByIdGetPayload,
+  TodoTableCreatePayload,
+} from "../types";
+import { body } from "express-validator";
 import _ from "lodash";
+import { handleErrors } from "../util/handle-errors";
 
-const getTodoTableById = async (id: number): Promise<TodoTable> => {
-  return db(Table.TodoTable).where({ id }).first();
-};
+const todoTableController = (apiRouter: Router) => {
+  apiRouter.post(
+    "/todo-table/create",
+    [
+      body("params")
+        .notEmpty()
+        .withMessage("Field 'params' is required in body"),
+    ],
+    async (
+      req: Request<{}, {}, JsonRpcRequest<TodoTableCreatePayload>>,
+      res: Response<JsonRpcResponse<TodoTable> | JsonRpcResponseError>
+    ) => {
+      handleErrors(req, res);
 
-const createTodoTable = async (
-  tableData: Omit<TodoTable, "id">
-): Promise<TodoTable> => {
-  const todoTableCreateResult = _.head(
-    await db(Table.TodoTable).insert(tableData, ["id"])
+      const response = await todoTableModel.createTodoTable(
+        req.body.params.todoTable
+      );
+
+      res.json(makeJsonRPCResponse(response));
+    }
   );
 
-  return getTodoTableById(todoTableCreateResult.id);
-};
+  apiRouter.put(
+    "/todo-table/get",
+    [
+      body("params")
+        .notEmpty()
+        .withMessage("Field 'params' is required in body"),
+      body("params.id")
+        .notEmpty()
+        .withMessage("Field 'params.id' is required in body"),
+    ],
+    async (
+      req: Request<{}, {}, JsonRpcRequest<TodoTableByIdGetPayload>>,
+      res: Response<JsonRpcResponse<TodoTable>>
+    ) => {
+      handleErrors(req, res);
 
-const getTodoItemById = async (id: string): Promise<TodoItem> => {
-  return db(Table.TodoItem).where({ id }).first();
-};
+      const response = await todoTableModel.getTodoTableById(
+        Number(req.body.params.id)
+      );
 
-const createTodoItem = async (
-  itemData: Omit<TodoItem, "id">
-): Promise<TodoItem> => {
-  const todoItemCreateResult = _.head(
-    await db(Table.TodoItem).insert(itemData, ["id"])
+      res.json(makeJsonRPCResponse(response));
+    }
   );
-
-  return getTodoItemById(todoItemCreateResult.id);
 };
 
-const updateTodoItem = async (itemData: TodoItem): Promise<TodoItem> => {
-  const todoItemUpdateResult = _.head(
-    await db(Table.TodoItem).where({ id: itemData.id }).update(itemData, ["id"])
-  );
-
-  return getTodoItemById(todoItemUpdateResult.id);
-};
-
-export {
-  createTodoTable,
-  createTodoItem,
-  updateTodoItem,
-  getTodoTableById,
-  getTodoItemById,
-};
+export { todoTableController };
