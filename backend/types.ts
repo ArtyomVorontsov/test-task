@@ -15,7 +15,7 @@ export type TodoItem = {
   id: number;
   title: string;
   description: string | null;
-  status: string;
+  status: number;
   deleted: boolean;
   parent_id: number | null;
   table_id: number;
@@ -26,11 +26,7 @@ export type TodoItem = {
 export type TodoTable = {
   id: number;
   title: string;
-  description: string | null;
-  status: string | null;
-  deleted: boolean | null;
-  parent_id: string | null;
-  table_id: string | null;
+  closed: boolean;
   created_at: Date;
   updated_at: Date;
 };
