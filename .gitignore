@@ -1,0 +1,3 @@
+node_modules
+pgconnect.sh
+knexfile.ts
