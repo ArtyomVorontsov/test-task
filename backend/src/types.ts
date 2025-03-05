@@ -21,6 +21,23 @@ type TodoItemUpdatePayload = { todoItem: TodoItem };
 type TodoTableByIdGetPayload = { id: string };
 type TodoTableCreatePayload = { todoTable: Omit<TodoTable, "id"> };
 
+type User = {
+  id: string;
+  nickname: string;
+  color: string;
+  reservedField: string | null;
+  cursor: {
+    x: number;
+    y: number;
+  };
+};
+
+type TodoTableState = {
+  todoTable: TodoTable;
+  todoItems: TodoItem[];
+  users: User[];
+};
+
 export {
   JsonRpcRequest,
   JsonRpcResponse,
@@ -30,4 +47,6 @@ export {
   TodoItemUpdatePayload,
   TodoTableByIdGetPayload,
   TodoTableCreatePayload,
+  TodoTableState,
+  User,
 };

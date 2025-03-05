@@ -6,6 +6,10 @@ const getTodoItemById = async (id: string): Promise<TodoItem> => {
   return db(Table.TodoItem).where({ id }).first();
 };
 
+const getTodoItemsByTableId = async (tableId: number): Promise<TodoItem[]> => {
+  return db(Table.TodoItem).where({ table_id: tableId });
+};
+
 const createTodoItem = async (
   itemData: Omit<TodoItem, "id">
 ): Promise<TodoItem> => {
@@ -24,4 +28,9 @@ const updateTodoItem = async (itemData: TodoItem): Promise<TodoItem> => {
   return getTodoItemById(todoItemUpdateResult.id);
 };
 
-export { updateTodoItem, createTodoItem, getTodoItemById };
+export {
+  updateTodoItem,
+  createTodoItem,
+  getTodoItemById,
+  getTodoItemsByTableId,
+};
