@@ -9,7 +9,8 @@ import {
   getTodoTableStateByUserId,
 } from "../model/real-time";
 import { TodoTableState } from "../types";
-import { pushToDbSyncQueue } from "../jobs/db-sync";
+import { localStorageToDbSyncQueue, pushToDbSyncQueue } from "../jobs/db-sync";
+import { logger } from "../util/logger";
 
 const printState = () => {
   for (let i = 0; i < localStorage.length; i++) {
@@ -20,35 +21,44 @@ const printState = () => {
       if (record) {
         const state: TodoTableState = JSON.parse(record);
         console.log(state);
-        console.log(JSON.stringify(state));
+        logger(JSON.stringify(state));
       }
     }
   }
 };
 
+const emitSyncEvent = (roomId: number, io: Server) => {
+  const todoTableId = Number(roomId);
+
+  const todoTableState = getTodoTableState(todoTableId);
+  io.to(String(todoTableId)).emit(
+    "message",
+    JSON.stringify({ todoTableState })
+  );
+};
+
 const realTimeController = (io: Server) => {
   io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
+    logger(`User connected: ${socket.id}`);
 
     // Joining a room
-    socket.on("joinRoom", async (todoTableId: string) => {
+    socket.on("joinRoom", async (roomId: string) => {
       try {
-        if (!!todoTableId) {
-          throw new Error("reservedField argument is required");
+        if (!roomId) {
+          throw new Error("roomId argument is required");
         }
 
-        console.log(`User ${socket.id} joined room ${todoTableId}`);
-        io.to(todoTableId).emit(
-          "message",
-          `User ${socket.id} has joined ${todoTableId}`
-        );
+        logger(`User ${socket.id} joined room ${roomId}`);
+        io.to(roomId).emit("message", `User ${socket.id} has joined ${roomId}`);
 
-        const state = getTodoTableState(Number(todoTableId));
+        const todoTableId = Number(roomId);
+
+        const state = getTodoTableState(todoTableId);
         if (!state) {
-          await initTodoTableState(Number(todoTableId));
+          await initTodoTableState(todoTableId);
         }
 
-        joinUser(Number(todoTableId), socket.id);
+        joinUser(todoTableId, socket.id);
       } catch (error) {
         console.error(error);
       }
@@ -62,7 +72,7 @@ const realTimeController = (io: Server) => {
 
         if (todoTableId) {
           socket.leave(String(todoTableId));
-          console.log(`User ${socket.id} left room ${todoTableId}`);
+          logger(`User ${socket.id} left room ${todoTableId}`);
           io.to(String(todoTableId)).emit(
             "message",
             `User ${socket.id} has left ${todoTableId}`
@@ -81,7 +91,7 @@ const realTimeController = (io: Server) => {
 
     socket.on("reserveField", (reservedField: string) => {
       try {
-        if (!!reservedField) {
+        if (!reservedField) {
           throw new Error("reservedField argument is required");
         }
 
@@ -89,7 +99,7 @@ const realTimeController = (io: Server) => {
         const todoTableId = getTodoTableStateByUserId(userId)?.todoTable?.id;
 
         if (todoTableId) {
-          console.log(
+          logger(
             `User ${userId} reserved ${reservedField} in todoTableId ${todoTableId}`
           );
 
@@ -101,7 +111,7 @@ const realTimeController = (io: Server) => {
             JSON.stringify({ todoTableState })
           );
         } else {
-          console.log(`User ${userId} is not joined to any table`);
+          logger(`User ${userId} is not joined to any table`);
         }
       } catch (error) {
         console.error(error);
@@ -111,7 +121,7 @@ const realTimeController = (io: Server) => {
 
     socket.on("updateState", (state: string) => {
       try {
-        if (!!state) {
+        if (!state) {
           throw new Error("state argument is required");
         }
 
@@ -129,9 +139,9 @@ const realTimeController = (io: Server) => {
             JSON.stringify({ todoTableState })
           );
 
-          pushToDbSyncQueue(todoTableId);
+          pushToDbSyncQueue(localStorageToDbSyncQueue, todoTableId);
         } else {
-          console.log(`User ${userId} is not joined to any table`);
+          logger(`User ${userId} is not joined to any table`);
         }
       } catch (error) {
         console.error(error);
@@ -153,4 +163,4 @@ const realTimeController = (io: Server) => {
   });
 };
 
-export { realTimeController };
+export { realTimeController, emitSyncEvent };

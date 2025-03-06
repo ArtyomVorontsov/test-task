@@ -1,42 +1,65 @@
-import { getTodoTableState } from "../model/real-time";
-import { updateTodoItem } from "../model/todo-item";
+import { getTodoTableState, setTodoTableState } from "../model/real-time";
+import { getTodoItemsByTableId, updateTodoItem } from "../model/todo-item";
+import { getTodoTableById } from "../model/todo-table";
+import cron from "node-cron";
+import { Server } from "socket.io";
+import { emitSyncEvent } from "../controller/real-time";
+import { logger } from "../util/logger";
 
-const pushToDbSyncQueue = (todoTableId: number) => {
-  const syncQueueString = localStorage.getItem("sync-queue");
+const pushToDbSyncQueue = (syncQueueName: string, todoTableId: number) => {
+  const syncQueueString = localStorage.getItem(syncQueueName);
   const syncQueue: number[] = syncQueueString
     ? JSON.parse(syncQueueString)
     : [];
   syncQueue.push(todoTableId);
-  localStorage.setItem("sync-queue", JSON.stringify(syncQueue));
+  localStorage.setItem(syncQueueName, JSON.stringify(syncQueue));
 };
 
-const popFromDbSyncQueue = (): number => {
-  const syncQueueString = localStorage.getItem("sync-queue");
+const popFromDbSyncQueue = (syncQueueName: string): number => {
+  const syncQueueString = localStorage.getItem(syncQueueName);
   const syncQueue: string[] = syncQueueString
     ? JSON.parse(syncQueueString)
     : [];
   const todoTableIdToSync = syncQueue.pop();
-  localStorage.setItem("sync-queue", JSON.stringify(syncQueue));
+  localStorage.setItem(syncQueueName, JSON.stringify(syncQueue));
 
   return Number(todoTableIdToSync);
 };
 
-const startDbSyncJob = () => {
-  setInterval(() => {
-    console.log("Start sync");
+const localStorageToDbSyncQueue = "local-storage-to-db-sync-queue";
+const dbToLocalStorageSyncQueue = "db-to-local-storage-sync-queue";
 
-    const todoTableId = popFromDbSyncQueue();
+const startDbSyncJob = (io: Server) => {
+  logger("startDbSyncJob");
+  cron.schedule("*/10 * * * * *", () => {
+    logger("Start local storage -> db sync");
+
+    const todoTableId = popFromDbSyncQueue(localStorageToDbSyncQueue);
 
     if (todoTableId) {
-      syncWithDb(todoTableId);
-      console.log(`Finish sync for ${todoTableId}`);
+      syncLocalStorageWithDb(todoTableId);
+      logger(`Finish local storage -> db sync for ${todoTableId}`);
     } else {
-      console.log("Finish sync, no items in sync queue");
+      logger("Finish local storage -> db sync, no items in sync queue");
     }
-  }, 10000);
+  });
+
+  cron.schedule("*/10 * * * * *", async () => {
+    logger("Start db -> local storage sync");
+
+    const todoTableId = popFromDbSyncQueue(dbToLocalStorageSyncQueue);
+
+    if (todoTableId) {
+      await syncDbWithLocalStorage(todoTableId);
+      logger(`Finish db -> local storage sync for ${todoTableId}`);
+      emitSyncEvent(todoTableId, io);
+    } else {
+      logger("Finish db -> local storage sync, no items in sync queue");
+    }
+  });
 };
 
-const syncWithDb = async (todoTableId: number) => {
+const syncLocalStorageWithDb = async (todoTableId: number) => {
   const state = getTodoTableState(todoTableId);
 
   for (const todoItem of state.todoItems) {
@@ -44,4 +67,21 @@ const syncWithDb = async (todoTableId: number) => {
   }
 };
 
-export { pushToDbSyncQueue, startDbSyncJob };
+const syncDbWithLocalStorage = async (todoTableId: number) => {
+  const todoTable = await getTodoTableById(todoTableId);
+  const todoItems = await getTodoItemsByTableId(todoTableId);
+  const users = getTodoTableState(todoTableId).users;
+
+  setTodoTableState(todoTableId, {
+    todoTable,
+    todoItems,
+    users,
+  });
+};
+
+export {
+  pushToDbSyncQueue,
+  startDbSyncJob,
+  localStorageToDbSyncQueue,
+  dbToLocalStorageSyncQueue,
+};

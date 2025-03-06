@@ -40,16 +40,11 @@ const runApp = () => {
   realTimeController(io);
 
   // Needed to maintain sync between db and real time user changes
-  startDbSyncJob();
+  startDbSyncJob(io);
 
   // Start the server
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
-  });
-
-  // Start the server
-  server.listen(PORT + 1, () => {
-    console.log(`Server is running on http://localhost:${PORT + 1}`);
   });
 };
 

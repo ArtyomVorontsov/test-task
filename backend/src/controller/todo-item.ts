@@ -12,6 +12,7 @@ import {
 import { body } from "express-validator";
 import _ from "lodash";
 import { handleErrors } from "../util/handle-errors";
+import { dbToLocalStorageSyncQueue, pushToDbSyncQueue } from "../jobs/db-sync";
 
 const todoItemController = (apiRouter: Router) => {
   apiRouter.post(
@@ -29,6 +30,11 @@ const todoItemController = (apiRouter: Router) => {
 
       const response = await todoItemModel.createTodoItem(
         req.body.params.todoItem
+      );
+
+      pushToDbSyncQueue(
+        dbToLocalStorageSyncQueue,
+        req.body.params.todoItem.table_id
       );
 
       res.json(makeJsonRPCResponse(response));

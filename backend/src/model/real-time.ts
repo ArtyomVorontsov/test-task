@@ -17,7 +17,7 @@ const initTodoTableState = async (todoTableId: number) => {
 };
 
 const getTodoTableState = (todoTableId: number): TodoTableState => {
-  const todoTableState = localStorage.getItem(String(todoTableId));
+  const todoTableState = localStorage.getItem(`todoTable:${todoTableId}`);
   return todoTableState && JSON.parse(todoTableState);
 };
 
@@ -25,7 +25,22 @@ const setTodoTableState = (
   todoTableId: number,
   todoTableState: TodoTableState
 ) => {
-  localStorage.setItem(String(todoTableId), JSON.stringify(todoTableState));
+  localStorage.setItem(
+    `todoTable:${todoTableId}`,
+    JSON.stringify(todoTableState)
+  );
+};
+
+const getTodoTableStates = () => {
+  const todoTableStates: TodoTableState[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+
+    if (key && _.head(key.split(":")) === "todoTable") {
+      todoTableStates.push(getTodoTableState(Number(key.split(":").at(1))));
+    }
+  }
+  return todoTableStates;
 };
 
 const mergeTodoTableState = (
@@ -64,10 +79,9 @@ const reserveField = (userId: string, reservedField: string) => {
 // User
 
 const joinUser = (todoTableId: number, socketId: string) => {
-  const todoTableState = getTodoTableState(todoTableId);
-
   // Remove user from other tables
   removeUser(socketId);
+  const todoTableState = getTodoTableState(todoTableId);
   todoTableState.users.push(createNewUser(socketId));
   setTodoTableState(todoTableId, todoTableState);
 };
@@ -86,34 +100,26 @@ const createNewUser = (id: string): User => {
 };
 
 const removeUser = (userId: string) => {
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
+  const todoTableStates: TodoTableState[] = getTodoTableStates();
 
-    if (key) {
-      const record = localStorage.getItem(key);
-      if (record) {
-        const state: TodoTableState = JSON.parse(record);
-        state.users = state.users.filter((u) => u.id !== userId);
-        setTodoTableState(state.todoTable.id, state);
-      }
-    }
+  for (let i = 0; i < todoTableStates.length; i++) {
+    const state: TodoTableState = todoTableStates[i];
+    state.users = state.users.filter((u) => u.id !== userId);
+
+    setTodoTableState(state.todoTable.id, state);
   }
 };
 
 const getTodoTableStateByUserId = (userId: string): TodoTableState | null => {
   let todoTableState: TodoTableState | null = null;
 
-  for (let i = 0; i < localStorage.length && todoTableState == null; i++) {
-    const key = localStorage.key(i);
+  const todoTableStates: TodoTableState[] = getTodoTableStates();
 
-    if (key) {
-      const record = localStorage.getItem(key);
-      if (record) {
-        const state: TodoTableState = JSON.parse(record);
-        if (state.users.find((u) => u.id === userId)) {
-          todoTableState = state;
-        }
-      }
+  for (let i = 0; i < todoTableStates.length && todoTableState == null; i++) {
+    const state: TodoTableState = todoTableStates[i];
+
+    if (state.users.find((u) => u.id === userId)) {
+      todoTableState = state;
     }
   }
 
