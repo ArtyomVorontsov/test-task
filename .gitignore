@@ -1,5 +1,5 @@
 node_modules
 pgconnect.sh
 knexfile.ts
-*.js
+/backend/*.js
 local-storage-data
