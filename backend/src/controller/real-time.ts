@@ -49,16 +49,21 @@ const realTimeController = (io: Server) => {
         }
 
         logger(`User ${socket.id} joined room ${roomId}`);
-        io.to(roomId).emit("message", `User ${socket.id} has joined ${roomId}`);
 
         const todoTableId = Number(roomId);
-
         const state = getTodoTableState(todoTableId);
         if (!state) {
           await initTodoTableState(todoTableId);
         }
 
         joinUser(todoTableId, socket.id);
+        socket.join(String(todoTableId));
+
+        const todoTableState = getTodoTableState(todoTableId);
+        io.to(String(todoTableId)).emit(
+          "stateUpdated",
+          JSON.stringify({ todoTableState })
+        );
       } catch (error) {
         console.error(error);
       }
@@ -72,13 +77,14 @@ const realTimeController = (io: Server) => {
 
         if (todoTableId) {
           socket.leave(String(todoTableId));
-          logger(`User ${socket.id} left room ${todoTableId}`);
-          io.to(String(todoTableId)).emit(
-            "message",
-            `User ${socket.id} has left ${todoTableId}`
-          );
-
           removeUser(socket.id);
+
+          logger(`User ${socket.id} left room ${todoTableId}`);
+
+          const todoTableState = getTodoTableState(todoTableId);
+          socket
+            .to(String(todoTableId))
+            .emit("stateUpdated", JSON.stringify({ todoTableState }));
         } else {
           throw new Error(`User ${todoTableId} is not joined to any room`);
         }
@@ -106,10 +112,9 @@ const realTimeController = (io: Server) => {
           reserveField(userId, reservedField);
 
           const todoTableState = getTodoTableState(todoTableId);
-          io.to(String(todoTableId)).emit(
-            "message",
-            JSON.stringify({ todoTableState })
-          );
+          socket
+            .to(String(todoTableId))
+            .emit("stateUpdated", JSON.stringify({ todoTableState }));
         } else {
           logger(`User ${userId} is not joined to any table`);
         }
@@ -134,10 +139,9 @@ const realTimeController = (io: Server) => {
           mergeTodoTableState(todoTableId, todoTableStatePayload, socket.id);
 
           const todoTableState = getTodoTableState(todoTableId);
-          io.to(String(todoTableId)).emit(
-            "message",
-            JSON.stringify({ todoTableState })
-          );
+          socket
+            .to(String(todoTableId))
+            .emit("stateUpdated", JSON.stringify({ todoTableState }));
 
           pushToDbSyncQueue(localStorageToDbSyncQueue, todoTableId);
         } else {

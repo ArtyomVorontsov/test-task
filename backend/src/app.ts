@@ -7,13 +7,16 @@ import { Server } from "socket.io";
 import { realTimeController } from "./controller/real-time";
 import { LocalStorage } from "node-localstorage";
 import { startDbSyncJob } from "./jobs/db-sync";
+import cors from "cors";
 
 const runApp = () => {
   global.localStorage = new LocalStorage("./local-storage-data");
   localStorage.clear();
 
   const app = express();
+  app.use(cors());
   const server = http.createServer(app);
+
   const io = new Server(server, {
     cors: {
       origin: "*",
