@@ -12,19 +12,22 @@ import { TodoTableState } from "../types";
 import { localStorageToDbSyncQueue, pushToDbSyncQueue } from "../jobs/db-sync";
 import { logger } from "../util/logger";
 
-const printState = () => {
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
+const DEV = false;
 
-    if (key) {
-      const record = localStorage.getItem(key);
-      if (record) {
-        const state: TodoTableState = JSON.parse(record);
-        console.log(state);
-        logger(JSON.stringify(state));
+const printState = () => {
+  if (DEV)
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+
+      if (key) {
+        const record = localStorage.getItem(key);
+        if (record) {
+          const state: TodoTableState = JSON.parse(record);
+          console.log(state);
+          logger(JSON.stringify(state));
+        }
       }
     }
-  }
 };
 
 const emitSyncEvent = (roomId: number, io: Server) => {
