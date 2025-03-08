@@ -7,6 +7,7 @@ import {
 } from "@mui/material";
 import { STATUS, TodoItem } from "../types";
 import RealTimeInput from "./RealTimeInput";
+import { getHopefullyFunnyMessage } from "../utils/get-hopefully-funny-message";
 
 type TodoListProps = {
   todoItems: TodoItem[];
@@ -45,16 +46,20 @@ export default function TodoList({
     [STATUS.PENDING]: "Pending",
   };
 
+  const messages = getHopefullyFunnyMessage(status, todoItems);
+
   return (
     <div>
       <Card sx={stylesConfig[status]}>
         <CardContent>
-          <Typography>
+          <Typography variant="caption">
             {statusText[status]} todo amount: {amountOfTodoInTheList}
           </Typography>
         </CardContent>
       </Card>
+
       <div className="w-80 h-[600px] overflow-y-auto bg-white shadow-lg rounded-lg p-4 space-y-4 border border-gray-300">
+        <Typography variant="caption">{messages[status]}</Typography>
         {todoItems.map((todoItem, i) => {
           if (Number(todoItem.status) !== status) {
             return <></>;

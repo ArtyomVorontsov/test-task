@@ -6,9 +6,10 @@ import _ from "lodash";
 
 type UsersProps = {
   users: User[];
+  clientUserId?: string;
 };
 
-function Users({ users }: UsersProps) {
+function Users({ users, clientUserId }: UsersProps) {
   return (
     <Stack direction="row" spacing={2}>
       {users.map((user) => (
@@ -19,6 +20,7 @@ function Users({ users }: UsersProps) {
           <Avatar
             sx={{
               backgroundImage: `linear-gradient(to right, ${user.color},rgb(245, 245, 245))`,
+              border: clientUserId == user.id ? "3px solid blue" : "0px",
             }}
           >
             {user.nickname

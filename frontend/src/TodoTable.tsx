@@ -129,7 +129,7 @@ function TodoTableComponent() {
             ></TodoTableInputs>
           </div>
           <div className="flex mr-10">
-            <Users users={todoState.users} />
+            <Users users={todoState.users} clientUserId={socket.id} />
           </div>
         </header>
 
