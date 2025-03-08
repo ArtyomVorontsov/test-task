@@ -1,13 +1,7 @@
-import { uniqueNamesGenerator, Config, colors } from "unique-names-generator";
+var randomColor = require("randomcolor");
 
 const generateColor = () => {
-  const config: Config = {
-    dictionaries: [colors],
-    separator: "-",
-    length: 1,
-  };
-
-  return uniqueNamesGenerator(config);
+  return randomColor({ luminosity: "bright", format: "hex" });
 };
 
 export { generateColor };

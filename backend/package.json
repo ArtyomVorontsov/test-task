@@ -19,6 +19,7 @@
     "node-cron": "^3.0.3",
     "node-localstorage": "^3.0.5",
     "pg": "8.13.3",
+    "randomcolor": "^0.6.2",
     "socket.io": "4.8.1",
     "unique-names-generator": "^4.7.1"
   }

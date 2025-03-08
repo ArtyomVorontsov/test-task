@@ -30,7 +30,7 @@ const dbToLocalStorageSyncQueue = "db-to-local-storage-sync-queue";
 
 const startDbSyncJob = (io: Server) => {
   logger("startDbSyncJob");
-  cron.schedule("*/10 * * * * *", () => {
+  cron.schedule("*/10 * * * * *", async () => {
     logger("Start local storage -> db sync");
 
     let todoTableId: number | null = null;
@@ -39,11 +39,14 @@ const startDbSyncJob = (io: Server) => {
       todoTableIds.add(popFromDbSyncQueue(localStorageToDbSyncQueue));
     } while (todoTableId);
 
-    if (todoTableId) {
-      [...todoTableIds.values()].forEach(() => {
-        syncLocalStorageWithDb(todoTableId);
-      });
-      logger(`Finish local storage -> db sync for ${todoTableId}`);
+    const todoTableIdsToSync = [...todoTableIds.values()] as number[];
+    if (todoTableIdsToSync.length) {
+      for (const todoTableId of todoTableIdsToSync) {
+        await syncLocalStorageWithDb(todoTableId);
+      }
+      logger(
+        `Finish local storage -> db sync for ${todoTableIdsToSync.join(", ")}`
+      );
     } else {
       logger("Finish local storage -> db sync, no items in sync queue");
     }
@@ -52,6 +55,7 @@ const startDbSyncJob = (io: Server) => {
 
 const syncLocalStorageWithDb = async (todoTableId: number) => {
   const state = getTodoTableState(todoTableId);
+  console.log({ heyyy: state.todoTable });
 
   for (const todoItem of state.todoItems) {
     await updateTodoItem(todoItem);
