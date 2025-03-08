@@ -1,52 +1,107 @@
 import Card from "@mui/material/Card";
-import { CardContent, CardHeader, Typography } from "@mui/material";
-import { TodoItem } from "../types";
+import {
+  CardContent,
+  Checkbox,
+  FormControlLabel,
+  Typography,
+} from "@mui/material";
+import { STATUS, TodoItem } from "../types";
 import RealTimeInput from "./RealTimeInput";
 
 type TodoListProps = {
   todoItems: TodoItem[];
   reserveField: (path: string) => () => void;
+  releaseField: () => () => void;
   handleFormChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  status: STATUS;
 };
 
 export default function TodoList({
   todoItems,
   reserveField,
+  releaseField,
   handleFormChange,
+  status,
 }: TodoListProps) {
+  const amountOfTodoInTheList = todoItems.filter(
+    (todoItem) => Number(todoItem.status) === status
+  ).length;
+
+  const stylesConfig = {
+    [STATUS.COMPLETED]: {
+      maxWidth: 345,
+      borderTop: "3px solid green",
+      marginBottom: "10px",
+    },
+    [STATUS.PENDING]: {
+      maxWidth: 345,
+      borderTop: "3px solid blue",
+      marginBottom: "10px",
+    },
+  };
+
+  const statusText = {
+    [STATUS.COMPLETED]: "Done",
+    [STATUS.PENDING]: "Pending",
+  };
+
   return (
-    <div className="w-80 h-[600px] overflow-y-auto bg-white shadow-lg rounded-lg p-4 space-y-4 border border-gray-300">
-      {todoItems.map((todoItem, i) => (
-        <Card key={todoItem.id} sx={{ maxWidth: 345 }}>
-          <CardHeader>
-            <Typography gutterBottom variant="h5" component="div">
-              {todoItem.title}
-            </Typography>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center space-y-6 p-6 bg-gray-100">
-              <div>
+    <div>
+      <Card sx={stylesConfig[status]}>
+        <CardContent>
+          <Typography>
+            {statusText[status]} todo amount: {amountOfTodoInTheList}
+          </Typography>
+        </CardContent>
+      </Card>
+      <div className="w-80 h-[600px] overflow-y-auto bg-white shadow-lg rounded-lg p-4 space-y-4 border border-gray-300">
+        {todoItems.map((todoItem, i) => {
+          if (Number(todoItem.status) !== status) {
+            return <></>;
+          }
+
+          return (
+            <Card sx={stylesConfig[status]} key={todoItem.id}>
+              <CardContent>
                 <RealTimeInput
                   label="Title"
                   value={todoItem.title}
                   reserveField={reserveField}
+                  releaseField={releaseField}
                   path={`todoItems[${i}].title`}
                   handleFormChange={handleFormChange}
                 />
-              </div>
-              <div>
+
                 <RealTimeInput
                   label="Description"
                   value={todoItem.description}
                   reserveField={reserveField}
+                  releaseField={releaseField}
                   path={`todoItems[${i}].description`}
                   handleFormChange={handleFormChange}
                 />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+
+                <FormControlLabel
+                  label="Is done?"
+                  control={
+                    <Checkbox
+                      color="success"
+                      checked={todoItem.status == 1}
+                      value={todoItem.status == 1}
+                      name={`todoItems[${i}].status`}
+                      onFocus={reserveField(`todoItems[${i}].status`)}
+                      onChange={(e) => {
+                        e.target.value = e.target.checked ? "1" : "0";
+                        handleFormChange(e);
+                      }}
+                    />
+                  }
+                />
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -66,3 +66,7 @@ export type TodoTableState = {
   users: User[];
 };
 
+export enum STATUS {
+  PENDING = 0,
+  COMPLETED = 1,
+}

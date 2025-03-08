@@ -4,6 +4,7 @@ type RealTimeInputProps = {
   label: string;
   value: string | null;
   reserveField: (path: string) => () => void;
+  releaseField: () => () => void;
   path: string;
   handleFormChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
@@ -11,19 +12,21 @@ type RealTimeInputProps = {
 function RealTimeInput({
   value,
   reserveField,
+  releaseField,
   path,
   handleFormChange,
   label,
 }: RealTimeInputProps) {
   return (
-    <div className="flex flex-col items-center justify-center space-y-6 p-6 bg-gray-100">
-      <label>{label}</label>
+    <div className="flex flex-col items-center justify-center pb-6">
       <input
-        id="outlined-basic"
+        className="p-2 text-black w-60"
         value={value ?? ""}
+        placeholder={label}
         name={path}
-        onClick={reserveField(path)}
+        onFocus={reserveField(path)}
         onChange={handleFormChange}
+        onBlur={releaseField()}
       />
     </div>
   );
