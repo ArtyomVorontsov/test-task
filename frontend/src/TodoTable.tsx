@@ -61,7 +61,6 @@ function TodoTableComponent() {
 
   useEffect(() => {
     if (socket.connected) {
-      socket.emit("leaveRoom");
       socket.emit("joinRoom", id);
     }
 

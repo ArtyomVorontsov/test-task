@@ -80,9 +80,11 @@ const reserveField = (userId: string, reservedField: string) => {
 
 const joinUser = (todoTableId: number, socketId: string) => {
   // Remove user from other tables
-  removeUser(socketId);
+  const joinedUser = removeUser(socketId);
   const todoTableState = getTodoTableState(todoTableId);
-  todoTableState.users.push(createNewUser(socketId));
+
+  todoTableState.users.push(joinedUser ? joinedUser : createNewUser(socketId));
+
   setTodoTableState(todoTableId, todoTableState);
 };
 
@@ -101,12 +103,22 @@ const createNewUser = (id: string): User => {
 
 const removeUser = (userId: string) => {
   const todoTableStates: TodoTableState[] = getTodoTableStates();
+  let removedUsers: User[] = [];
 
   for (let i = 0; i < todoTableStates.length; i++) {
     const state: TodoTableState = todoTableStates[i];
+
+    const user = state.users.find((u) => u.id === userId);
+
+    if (user) {
+      removedUsers.push(user);
+    }
+
     state.users = state.users.filter((u) => u.id !== userId);
     if (state.todoTable) setTodoTableState(state.todoTable.id, state);
   }
+
+  return _.first(removedUsers);
 };
 
 const getTodoTableStateByUserId = (userId: string): TodoTableState | null => {
