@@ -1,4 +1,5 @@
 import { TodoItem, TodoTable } from "../types";
+import { Request } from "express";
 
 type JsonRpcRequest<T> = {
   params: T;
@@ -37,6 +38,8 @@ type TodoTableState = {
   todoItems: TodoItem[];
   users: User[];
 };
+
+export type HookFunction = (req: Request) => Promise<void>;
 
 export {
   JsonRpcRequest,

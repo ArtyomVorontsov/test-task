@@ -1,8 +1,9 @@
 import { Request, Response, Router } from "express";
 import * as todoItemModel from "../model/todo-item";
-import { HookFunction, TodoItem } from "../../types";
+import { TodoItem } from "../../types";
 import { makeJsonRPCResponse } from "../mappers/json-rpc";
 import {
+  HookFunction,
   JsonRpcRequest,
   JsonRpcResponse,
   TodoItemByIdGetPayload,

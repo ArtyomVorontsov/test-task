@@ -5,7 +5,7 @@ import {
   syncLocalStorageWithDb,
 } from "../jobs/db-sync";
 import { Request } from "express";
-import { HookFunction } from "../../types";
+import { HookFunction } from "../types";
 
 const syncState = (io: Server): HookFunction => {
   return async (req: Request) => {

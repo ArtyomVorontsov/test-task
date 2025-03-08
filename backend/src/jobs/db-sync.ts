@@ -55,7 +55,6 @@ const startDbSyncJob = (io: Server) => {
 
 const syncLocalStorageWithDb = async (todoTableId: number) => {
   const state = getTodoTableState(todoTableId);
-  console.log({ heyyy: state.todoTable });
 
   for (const todoItem of state.todoItems) {
     await updateTodoItem(todoItem);
