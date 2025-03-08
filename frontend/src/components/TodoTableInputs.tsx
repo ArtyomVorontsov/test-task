@@ -17,7 +17,7 @@ function TodoTableInputs({
   return (
     <input
       type="text"
-      className="w-1/2 border-b-2 p-2 text-black "
+      className="flex w-full ml-10 text-black "
       placeholder="Enter text"
       value={title ?? ""}
       name={path}

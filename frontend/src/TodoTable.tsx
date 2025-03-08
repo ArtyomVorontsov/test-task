@@ -109,7 +109,7 @@ function TodoTableComponent() {
     <>
       <div className="flex flex-col h-screen">
         <header className="h-[10vh] bg-white-500 text-white flex items-center justify-between text-xl font-semibold pl-20 pr-20">
-          <div className="h-[10vh] bg-white-500 text-white flex items-center justify-between w-30%">
+          <div className="h-[10vh] bg-white-500 text-white flex items-center justify-start w-full">
             <IconButton
               color="primary"
               aria-label="open menu"
@@ -129,8 +129,9 @@ function TodoTableComponent() {
               closed={todoState.todoTable.closed}
             ></TodoTableInputs>
           </div>
-
-          <Users users={todoState.users} />
+          <div className="flex mr-10">
+            <Users users={todoState.users} />
+          </div>
         </header>
 
         <main className="flex-1 bg-white-100 flex flex-row items-center justify-center space-y-6">

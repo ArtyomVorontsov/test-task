@@ -26,4 +26,18 @@ const getAllTodoTables = () => {
   );
 };
 
-export { createTodo, getAllTodoTables };
+const createTodoTable = (title: string, closed: boolean) => {
+  return axios.post<JsonRpcResponse<TodoTable>>(
+    `${env.BACKEND_URL}/rpc/todo-table/create`,
+    {
+      params: {
+        todoTable: {
+          title,
+          closed,
+        },
+      },
+    }
+  );
+};
+
+export { createTodo, getAllTodoTables, createTodoTable };

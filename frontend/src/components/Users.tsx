@@ -18,7 +18,7 @@ function Users({ users }: UsersProps) {
         >
           <Avatar
             sx={{
-              backgroundImage: `linear-gradient(to right, ${user.color},rgb(245, 245, 245))`, // Gradient color
+              backgroundImage: `linear-gradient(to right, ${user.color},rgb(245, 245, 245))`,
             }}
           >
             {user.nickname
