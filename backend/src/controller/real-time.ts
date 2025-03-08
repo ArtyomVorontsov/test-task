@@ -35,7 +35,7 @@ const emitSyncEvent = (roomId: number, io: Server) => {
 
   const todoTableState = getTodoTableState(todoTableId);
   io.to(String(todoTableId)).emit(
-    "message",
+    "stateUpdated",
     JSON.stringify({ todoTableState })
   );
 };

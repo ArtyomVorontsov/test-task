@@ -1,14 +1,16 @@
 // The TypeScript definitions below are automatically generated.
 // Do not touch them, or risk, your modifications being lost.
 
+import { Request } from "express";
+
 export enum Table {
   TodoItem = "todo_item",
   TodoTable = "todo_table",
 }
 
 export type Tables = {
-  "todo_item": TodoItem,
-  "todo_table": TodoTable,
+  todo_item: TodoItem;
+  todo_table: TodoTable;
 };
 
 export type TodoItem = {
@@ -31,3 +33,4 @@ export type TodoTable = {
   updated_at: Date;
 };
 
+export type HookFunction = (req: Request) => Promise<void>;

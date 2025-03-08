@@ -58,6 +58,20 @@ const todoTableController = (apiRouter: Router) => {
       res.json(makeJsonRPCResponse(response));
     }
   );
+
+  apiRouter.put(
+    "/todo-table/get-all",
+    async (
+      req: Request<{}, {}>,
+      res: Response<JsonRpcResponse<TodoTable[]>>
+    ) => {
+      handleErrors(req, res);
+
+      const response = await todoTableModel.getAllTodoTables();
+
+      res.json(makeJsonRPCResponse(response));
+    }
+  );
 };
 
 export { todoTableController };

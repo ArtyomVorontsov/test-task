@@ -1,4 +1,4 @@
-import { Table, TodoItem } from "../../types";
+import { Table, TodoItem, TodoTable } from "../../types";
 import { db } from "../connector/db";
 import _ from "lodash";
 
@@ -7,7 +7,9 @@ const getTodoItemById = async (id: string): Promise<TodoItem> => {
 };
 
 const getTodoItemsByTableId = async (tableId: number): Promise<TodoItem[]> => {
-  return db(Table.TodoItem).where({ table_id: tableId });
+  return db(Table.TodoItem)
+    .where({ table_id: tableId })
+    .orderBy("created_at", "desc");
 };
 
 const createTodoItem = async (

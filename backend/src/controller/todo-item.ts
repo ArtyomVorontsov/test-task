@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import * as todoItemModel from "../model/todo-item";
-import { TodoItem } from "../../types";
+import { HookFunction, TodoItem } from "../../types";
 import { makeJsonRPCResponse } from "../mappers/json-rpc";
 import {
   JsonRpcRequest,
@@ -12,9 +12,8 @@ import {
 import { body } from "express-validator";
 import _ from "lodash";
 import { handleErrors } from "../util/handle-errors";
-import { dbToLocalStorageSyncQueue, pushToDbSyncQueue } from "../jobs/db-sync";
 
-const todoItemController = (apiRouter: Router) => {
+const todoItemController = (apiRouter: Router, hooks?: HookFunction[]) => {
   apiRouter.post(
     "/todo-item/create",
     [
@@ -32,12 +31,12 @@ const todoItemController = (apiRouter: Router) => {
         req.body.params.todoItem
       );
 
-      pushToDbSyncQueue(
-        dbToLocalStorageSyncQueue,
-        req.body.params.todoItem.table_id
-      );
-
       res.json(makeJsonRPCResponse(response));
+
+      // Post http call hooks execution
+      for (const hook of hooks ?? []) {
+        await hook(req);
+      }
     }
   );
 
@@ -62,6 +61,11 @@ const todoItemController = (apiRouter: Router) => {
       );
 
       res.json(makeJsonRPCResponse(response));
+
+      // Post http call hooks execution
+      for (const hook of hooks ?? []) {
+        await hook(req);
+      }
     }
   );
 

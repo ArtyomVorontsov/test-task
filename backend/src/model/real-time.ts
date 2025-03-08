@@ -105,8 +105,7 @@ const removeUser = (userId: string) => {
   for (let i = 0; i < todoTableStates.length; i++) {
     const state: TodoTableState = todoTableStates[i];
     state.users = state.users.filter((u) => u.id !== userId);
-
-    setTodoTableState(state.todoTable.id, state);
+    if (state.todoTable) setTodoTableState(state.todoTable.id, state);
   }
 };
 

@@ -8,6 +8,7 @@ import { realTimeController } from "./controller/real-time";
 import { LocalStorage } from "node-localstorage";
 import { startDbSyncJob } from "./jobs/db-sync";
 import cors from "cors";
+import { syncState } from "./hooks/sync-state";
 
 const runApp = () => {
   global.localStorage = new LocalStorage("./local-storage-data");
@@ -36,7 +37,7 @@ const runApp = () => {
   app.use(RPC_PREFIX, apiRouter);
 
   // Define RPC controllers
-  todoItemController(apiRouter);
+  todoItemController(apiRouter, [syncState(io)]);
   todoTableController(apiRouter);
 
   // Define socket controllers
