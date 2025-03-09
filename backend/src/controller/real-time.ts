@@ -11,45 +11,38 @@ import {
 import { TodoTableState } from "../types";
 import { localStorageToDbSyncQueue, pushToDbSyncQueue } from "../jobs/db-sync";
 import { logger } from "../util/logger";
+import { printState } from "../util/print-state";
 
-
-const printState = () => {
-  if (process.env.ENVIROMENT == 'DEV')
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-
-      if (key) {
-        const record = localStorage.getItem(key);
-        if (record) {
-          const state: TodoTableState = JSON.parse(record);
-          logger(JSON.stringify(state));
-        }
-      }
-    }
-};
+enum EVENTS {
+  STATE_UPDATED = "stateUpdated",
+  CONNECTION = "connection",
+  JOIN_ROOM = "joinRoom",
+  LEAVE_ROOM = "leaveRoom",
+  RESERVE_FIELD = "reserveField",
+  UPDATE_STATE = "updateState",
+  DISCONNECT = "disconnect",
+}
 
 const emitSyncEvent = (roomId: number, io: Server) => {
   const todoTableId = Number(roomId);
 
   const todoTableState = getTodoTableState(todoTableId);
   io.to(String(todoTableId)).emit(
-    "stateUpdated",
+    EVENTS.STATE_UPDATED,
     JSON.stringify({ todoTableState })
   );
 };
 
 const realTimeController = (io: Server) => {
-  io.on("connection", (socket) => {
+  io.on(EVENTS.CONNECTION, (socket) => {
     logger(`User connected: ${socket.id}`);
 
     // Joining a room
-    socket.on("joinRoom", async (roomId: string) => {
+    socket.on(EVENTS.JOIN_ROOM, async (roomId: string) => {
       try {
         if (!roomId) {
           throw new Error("roomId argument is required");
         }
-
-        logger(`User ${socket.id} joined room ${roomId}`);
 
         const todoTableId = Number(roomId);
         const state = getTodoTableState(todoTableId);
@@ -64,21 +57,14 @@ const realTimeController = (io: Server) => {
         const joinedUser = removeUser(socket.id);
 
         if (currentTodoTableId) {
-          const state = getTodoTableState(currentTodoTableId);
-          io.to(String(currentTodoTableId)).emit(
-            "stateUpdated",
-            JSON.stringify({ todoTableState: state })
-          );
+          emitSyncEvent(currentTodoTableId, io);
         }
 
         joinUser(todoTableId, socket.id, joinedUser);
         socket.join(String(todoTableId));
+        emitSyncEvent(todoTableId, io);
 
-        const todoTableState = getTodoTableState(todoTableId);
-        io.to(String(todoTableId)).emit(
-          "stateUpdated",
-          JSON.stringify({ todoTableState })
-        );
+        logger(`User ${socket.id} joined room ${roomId}`);
       } catch (error) {
         console.error(error);
       }
@@ -86,20 +72,15 @@ const realTimeController = (io: Server) => {
     });
 
     // Leaving a room
-    socket.on("leaveRoom", () => {
+    socket.on(EVENTS.LEAVE_ROOM, () => {
       try {
         const todoTableId = getTodoTableStateByUserId(socket.id)?.todoTable?.id;
 
         if (todoTableId) {
           socket.leave(String(todoTableId));
           removeUser(socket.id);
-
+          emitSyncEvent(todoTableId, io);
           logger(`User ${socket.id} left room ${todoTableId}`);
-
-          const todoTableState = getTodoTableState(todoTableId);
-          socket
-            .to(String(todoTableId))
-            .emit("stateUpdated", JSON.stringify({ todoTableState }));
         } else {
           throw new Error(`User ${todoTableId} is not joined to any room`);
         }
@@ -110,7 +91,7 @@ const realTimeController = (io: Server) => {
       printState();
     });
 
-    socket.on("reserveField", (reservedField: string) => {
+    socket.on(EVENTS.RESERVE_FIELD, (reservedField: string) => {
       try {
         if (!reservedField) {
           throw new Error("reservedField argument is required");
@@ -120,16 +101,11 @@ const realTimeController = (io: Server) => {
         const todoTableId = getTodoTableStateByUserId(userId)?.todoTable?.id;
 
         if (todoTableId) {
+          reserveField(userId, reservedField);
+          emitSyncEvent(todoTableId, io);
           logger(
             `User ${userId} reserved ${reservedField} in todoTableId ${todoTableId}`
           );
-
-          reserveField(userId, reservedField);
-
-          const todoTableState = getTodoTableState(todoTableId);
-          socket
-            .to(String(todoTableId))
-            .emit("stateUpdated", JSON.stringify({ todoTableState }));
         } else {
           logger(`User ${userId} is not joined to any table`);
         }
@@ -139,7 +115,7 @@ const realTimeController = (io: Server) => {
       printState();
     });
 
-    socket.on("updateState", (state: string) => {
+    socket.on(EVENTS.UPDATE_STATE, (state: string) => {
       try {
         if (!state) {
           throw new Error("state argument is required");
@@ -152,12 +128,7 @@ const realTimeController = (io: Server) => {
           const todoTableStatePayload: TodoTableState = JSON.parse(state);
 
           mergeTodoTableState(todoTableId, todoTableStatePayload, socket.id);
-
-          const todoTableState = getTodoTableState(todoTableId);
-          socket
-            .to(String(todoTableId))
-            .emit("stateUpdated", JSON.stringify({ todoTableState }));
-
+          emitSyncEvent(todoTableId, io);
           pushToDbSyncQueue(localStorageToDbSyncQueue, todoTableId);
         } else {
           logger(`User ${userId} is not joined to any table`);
@@ -170,7 +141,7 @@ const realTimeController = (io: Server) => {
     });
 
     // Handling disconnection
-    socket.on("disconnect", () => {
+    socket.on(EVENTS.DISCONNECT, () => {
       try {
         removeUser(socket.id);
       } catch (error) {
