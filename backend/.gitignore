@@ -4,3 +4,4 @@ knexfile.ts
 local-storage-data
 /dist
 /src/static/frontend-build
+.env
