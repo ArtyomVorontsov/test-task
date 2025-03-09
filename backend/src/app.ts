@@ -28,15 +28,12 @@ const runApp = () => {
   // Create a new router
   const apiRouter = express.Router();
 
+  app.use(express.static(path.join(__dirname, "static/frontend-build")));
+
   // Middleware to parse JSON
   app.use(express.json());
 
   app.use(RPC_PREFIX, apiRouter);
-
-  app.use(express.static(path.join(__dirname, "static")));
-
-  // Define static controller
-  staticController(apiRouter)
 
   // Define RPC controllers
   todoItemController(apiRouter, [syncState(io)]);
@@ -44,6 +41,9 @@ const runApp = () => {
 
   // Define socket controllers
   realTimeController(io);
+
+  // Define static controller
+  staticController(app);
 
   // Needed to maintain sync between db and real time user changes
   startDbSyncJob(io);
