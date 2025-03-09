@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a collaborative real-time to-do list (application)[http://20.123.59.80/1] that allows users to create and manage to-do items, such as grocery lists, while enabling multiple users to edit the list simultaneously.
+This is a collaborative real-time to-do list [application](http://20.123.59.80/1) that allows users to create and manage to-do items, such as grocery lists, while enabling multiple users to edit the list simultaneously.
 
 ## Technical Stack
 
