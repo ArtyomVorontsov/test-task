@@ -1,10 +1,13 @@
 import axios from "axios";
-import { env } from "../../env";
 import { JsonRpcResponse, TodoTable } from "../types";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+console.log(BACKEND_URL)
+
 
 const createTodo = (tableId: number, parentId: number | null = null) => {
   axios
-    .post(`${env.BACKEND_URL}/rpc/todo-item/create`, {
+    .post(`${BACKEND_URL}/rpc/todo-item/create`, {
       params: {
         todoItem: {
           title: "",
@@ -22,13 +25,13 @@ const createTodo = (tableId: number, parentId: number | null = null) => {
 
 const getAllTodoTables = () => {
   return axios.put<JsonRpcResponse<TodoTable[]>>(
-    `${env.BACKEND_URL}/rpc/todo-table/get-all`
+    `${BACKEND_URL}/rpc/todo-table/get-all`
   );
 };
 
 const createTodoTable = (title: string, closed: boolean) => {
   return axios.post<JsonRpcResponse<TodoTable>>(
-    `${env.BACKEND_URL}/rpc/todo-table/create`,
+    `${BACKEND_URL}/rpc/todo-table/create`,
     {
       params: {
         todoTable: {

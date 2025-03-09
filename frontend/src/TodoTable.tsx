@@ -7,13 +7,13 @@ import { STATUS, TodoTableState } from "./types";
 import _ from "lodash";
 import * as rpcConnectors from "./connectors/rpc";
 import { Button, Drawer, IconButton } from "@mui/material";
-import { env } from "../env";
 import TodoTableInputs from "./components/TodoTableInputs";
 import DrawerList from "./components/Drawer";
 import Users from "./components/Users";
 import MenuIcon from "@mui/icons-material/Menu";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const socket = io(env.BACKEND_URL);
+const socket = io(BACKEND_URL);
 
 const reserveField = (path: string) => {
   return () => {
