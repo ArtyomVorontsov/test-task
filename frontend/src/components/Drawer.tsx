@@ -39,7 +39,7 @@ function DrawerList({ toggleDrawer }: DrawerListProps) {
       .catch((e) => {
         console.error("Error: unable to fetch all todo tables", e);
       });
-  });
+  }, []);
 
   return (
     <List className="w-md ">

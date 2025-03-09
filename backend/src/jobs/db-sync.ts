@@ -39,7 +39,10 @@ const startDbSyncJob = (io: Server) => {
       todoTableIds.add(popFromDbSyncQueue(localStorageToDbSyncQueue));
     } while (todoTableId);
 
-    const todoTableIdsToSync = [...todoTableIds.values()] as number[];
+    const todoTableIdsToSync = [...todoTableIds.values()].filter(
+      Boolean
+    ) as number[];
+
     if (todoTableIdsToSync.length) {
       for (const todoTableId of todoTableIdsToSync) {
         await syncLocalStorageWithDb(todoTableId);

@@ -78,9 +78,7 @@ const reserveField = (userId: string, reservedField: string) => {
 
 // User
 
-const joinUser = (todoTableId: number, socketId: string) => {
-  // Remove user from other tables
-  const joinedUser = removeUser(socketId);
+const joinUser = (todoTableId: number, socketId: string, joinedUser?: User) => {
   const todoTableState = getTodoTableState(todoTableId);
 
   todoTableState.users.push(joinedUser ? joinedUser : createNewUser(socketId));

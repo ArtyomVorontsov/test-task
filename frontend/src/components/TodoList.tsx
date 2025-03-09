@@ -62,7 +62,7 @@ export default function TodoList({
         <Typography variant="caption">{messages[status]}</Typography>
         {todoItems.map((todoItem, i) => {
           if (Number(todoItem.status) !== status) {
-            return <></>;
+            return <div className="hidden" key={todoItem.id}></div>;
           }
 
           return (

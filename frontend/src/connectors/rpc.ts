@@ -2,9 +2,6 @@ import axios from "axios";
 import { JsonRpcResponse, TodoTable } from "../types";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-console.log(BACKEND_URL)
-
-
 const createTodo = (tableId: number, parentId: number | null = null) => {
   axios
     .post(`${BACKEND_URL}/rpc/todo-item/create`, {
@@ -19,7 +16,6 @@ const createTodo = (tableId: number, parentId: number | null = null) => {
         },
       },
     })
-    .then((response) => console.log(response.data))
     .catch((error) => console.error(error));
 };
 

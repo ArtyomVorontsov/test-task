@@ -12,10 +12,9 @@ import { TodoTableState } from "../types";
 import { localStorageToDbSyncQueue, pushToDbSyncQueue } from "../jobs/db-sync";
 import { logger } from "../util/logger";
 
-const DEV = false;
 
 const printState = () => {
-  if (DEV)
+  if (process.env.ENVIROMENT == 'DEV')
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
 
@@ -23,7 +22,6 @@ const printState = () => {
         const record = localStorage.getItem(key);
         if (record) {
           const state: TodoTableState = JSON.parse(record);
-          console.log(state);
           logger(JSON.stringify(state));
         }
       }
@@ -59,7 +57,21 @@ const realTimeController = (io: Server) => {
           await initTodoTableState(todoTableId);
         }
 
-        joinUser(todoTableId, socket.id);
+        const currentTodoTableId = getTodoTableStateByUserId(socket.id)
+          ?.todoTable?.id;
+
+        // Remove user from other tables
+        const joinedUser = removeUser(socket.id);
+
+        if (currentTodoTableId) {
+          const state = getTodoTableState(currentTodoTableId);
+          io.to(String(currentTodoTableId)).emit(
+            "stateUpdated",
+            JSON.stringify({ todoTableState: state })
+          );
+        }
+
+        joinUser(todoTableId, socket.id, joinedUser);
         socket.join(String(todoTableId));
 
         const todoTableState = getTodoTableState(todoTableId);
