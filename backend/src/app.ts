@@ -9,6 +9,8 @@ import { LocalStorage } from "node-localstorage";
 import { startDbSyncJob } from "./jobs/db-sync";
 import cors from "cors";
 import { syncState } from "./hooks/sync-state";
+import path from "path";
+import { staticController } from "./controller/static";
 
 const runApp = () => {
   global.localStorage = new LocalStorage("./local-storage-data");
@@ -23,11 +25,6 @@ const runApp = () => {
       origin: "*",
     },
   });
-
-  app.get("/", (req, res) => {
-    res.send("Hello World!");
-  });
-
   // Create a new router
   const apiRouter = express.Router();
 
@@ -35,6 +32,11 @@ const runApp = () => {
   app.use(express.json());
 
   app.use(RPC_PREFIX, apiRouter);
+
+  app.use(express.static(path.join(__dirname, "static")));
+
+  // Define static controller
+  staticController(apiRouter)
 
   // Define RPC controllers
   todoItemController(apiRouter, [syncState(io)]);

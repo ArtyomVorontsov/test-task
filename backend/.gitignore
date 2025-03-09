@@ -1,0 +1,6 @@
+node_modules
+knexfile.ts
+*.js
+local-storage-data
+/dist
+/src/static/frontend-build
